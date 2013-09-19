@@ -27,7 +27,9 @@ namespace olexlib
 		public string name = "";
 		public Color color = XKCDColors.Black;
 		public LinkedList<float> data = new LinkedList<float>();
+        public LinkedList<float> oldData = new LinkedList<float>();
 		public bool isActive = false;
+        public bool isLoggingOld = true;
 
 		public float getMinValue ()	{
 			return data.Count > 0 ? data.Min () : 0f;
@@ -37,15 +39,54 @@ namespace olexlib
 			return data.Count > 0 ? data.Max () : 1f;
 		}
 
+        public float[] getAllData()
+        {
+            float[] temp = new float[getDataCount()];
+            if (isLoggingOld)
+            {
+                oldData.CopyTo(temp, 0);
+                data.CopyTo(temp, oldData.Count);
+            }
+            else
+            {
+                data.CopyTo(temp, 0);
+            }            
+            return temp;
+        }
+
+        public int getDataCount()
+        {
+            int dataCount = data.Count;
+            if (isLoggingOld)
+            {
+                dataCount += oldData.Count;
+            }
+            return dataCount;
+        }
+
 		public void trimData (int dataPoints) {
 			while (data.Count > dataPoints) {
+                if (isLoggingOld)
+                {
+                    oldData.AddLast(data.First.Value);
+                }
 				data.RemoveFirst();
 			}
 		}
 
 		public void clearData (){
 			data.Clear();
+            oldData.Clear();
 		}
+
+        public void setLoggingOld(bool loggingOld)
+        {
+            if (!loggingOld)
+            {
+                oldData.Clear();
+            }
+            isLoggingOld = loggingOld;
+        }
 
 		public void setActive(bool active) {
 			if (active && !isActive && color == XKCDColors.Black)
